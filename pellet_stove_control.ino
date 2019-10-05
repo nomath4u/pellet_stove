@@ -26,6 +26,19 @@
 //Use the red LED also
 #define WIFI_STATUS_LED 0
 
+//Analog pin for Battery readings
+#define BATT A0
+
+//Conversion from ADC output through voltage divider to actual voltage
+/* The divider is 250kohm/250kohm + 1Mohm. 1024bit output on ADC which is a 1V ADc.
+ *  So if we had 4.2V at the battery it shoud be 4.2V * (250/1250) * 1024 = 860
+ *  Make sure you are putting this into a float
+ */
+#define TOP_RES 1000 //In kohms
+#define BOT_RES 250  //In kohms
+#define VOLTAGE_DIVIDER ( (float) BOT_RES / (float) (TOP_RES + BOT_RES) )
+#define VOLTAGE_CONVERSION ( (float) 1 / ( VOLTAGE_DIVIDER * 1024) )
+
 /* commands */
 enum command{
     RELAY_OFF,
@@ -51,7 +64,8 @@ Adafruit_MQTT_Client mqtt(&client, SERVER, SERVER_PORT, MQTT_USER, MQTT_PASS);
 
 /****************************** Feeds ***************************************/
 
-Adafruit_MQTT_Publish stove_state = Adafruit_MQTT_Publish(&mqtt, "/stove/state");
+Adafruit_MQTT_Publish stove_state = Adafruit_MQTT_Publish(&mqtt, "/stove/relay/state");
+Adafruit_MQTT_Publish battery_state = Adafruit_MQTT_Publish(&mqtt, "/stove/battery/state");
 Adafruit_MQTT_Subscribe stove_cmd = Adafruit_MQTT_Subscribe(&mqtt, "/stove/cmd");
 
 /*************************** Sketch Code ************************************/
@@ -93,6 +107,8 @@ void setup() {
 void loop() {
   char cmd;
   char* cmd_str;
+  int vbatt_raw;
+  float vbatt_calced;
   // Ensure the connection to the MQTT server is alive (this will make the first
   // connection and automatically reconnect when disconnected).  See the MQTT_connect
   // function definition further below.
@@ -118,6 +134,15 @@ void loop() {
     Serial.println(F("OK!"));
   }
 
+  /* We have a 1Mohm -> 250kohm voltage divider for this analog read since our adc is only to 1V*/
+  vbatt_raw = analogRead(BATT);
+  vbatt_calced = (float)vbatt_raw * VOLTAGE_CONVERSION;
+
+  if (!battery_state.publish(vbatt_calced)) {
+    Serial.println(F("Failed"));
+  } else {
+    Serial.println(F("OK!"));
+  }
   // ping the server to keep the mqtt connection alive, only needed if not publishing
   //if(! mqtt.ping()) {
   //  Serial.println("Disconnecting");
