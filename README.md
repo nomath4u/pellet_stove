@@ -1,4 +1,4 @@
-Control your pellet stove!
+Control your pellet stove! With the adafruit ESP8266 feather with a latching relay feather wing
 
 This could be used to control anything with a relay really over MQTT.
 
