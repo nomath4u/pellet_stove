@@ -20,6 +20,9 @@
 #include "Adafruit_MQTT_Client.h"
 #include "credentials.h"
 
+// I like to use the blue LED
+#define LED_PIN 2
+
 /* commands */
 enum command{
     RELAY_OFF,
@@ -57,6 +60,10 @@ void MQTT_connect();
 void setup() {
   Serial.begin(115200);
   delay(10);
+
+  // Setup LED
+  pinMode(LED_PIN, OUTPUT);
+  led_off();
 
   // Connect to WiFi access point.
   Serial.println(); Serial.println();
@@ -133,12 +140,31 @@ void MQTT_connect() {
   Serial.println("MQTT Connected!");
 }
 
+/* LED is revrse wired */
+void led_off(){
+  digitalWrite(LED_PIN, HIGH);
+}
+
+/* LED is reverse wired */
+void led_on(){
+  digitalWrite(LED_PIN, LOW);
+}
+
+void actuate_on(){
+  led_on();
+}
+
+void actuate_off(){
+  led_off();
+}
+
 void turn_off_stove(){
   if(state == OFF){
     Serial.println("Stove is already off! What are you doing?");
   } else {
     Serial.println("Turning off the stove");
     state = OFF;
+    actuate_off();
   }
 }
 
@@ -148,6 +174,7 @@ void turn_on_stove(){
   } else {
     Serial.println("Turning on the stove");
     state = ON;
+    actuate_on();
   }
 }
 
