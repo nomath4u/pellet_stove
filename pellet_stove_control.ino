@@ -134,17 +134,20 @@ void loop() {
       cmd_stove(atoi(&cmd_str[0]));
     }
   }
-//
+  stove_state.publish(state);
 //  if (!stove_state.publish(state)) {
 //    Serial.println(F("Failed"));
 //  } else {
 //    Serial.println(F("OK!"));
 //  }
 
-  /* We have a 1Mohm -> 250kohm voltage divider for this analog read since our adc is only to 1V*/
+  /* We have a 1Mohm -> 250kohm voltage divider for this analog read since our adc is only to 1V
+   *  Unfortunately the ADC is jittery https://github.com/esp8266/Arduino/issues/2070
+   */
   vbatt_raw = analogRead(BATT);
   vbatt_calced = (float)vbatt_raw * VOLTAGE_CONVERSION;
   Serial.println(vbatt_calced);
+  battery_state.publish(vbatt_calced);
 //  if (!battery_state.publish(vbatt_calced)) {
 //    Serial.println(F("Failed"));
 //  } else {
