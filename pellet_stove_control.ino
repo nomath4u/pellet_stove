@@ -23,6 +23,9 @@
 // I like to use the blue LED
 #define LED_PIN 2
 
+//Use the red LED also
+#define WIFI_STATUS_LED 0
+
 /* commands */
 enum command{
     RELAY_OFF,
@@ -63,7 +66,10 @@ void setup() {
 
   // Setup LED
   pinMode(LED_PIN, OUTPUT);
-  led_off();
+  pinMode(WIFI_STATUS_LED, OUTPUT);
+  led_off(WIFI_STATUS_LED);
+  led_off(LED_PIN);
+  
 
   // Connect to WiFi access point.
   Serial.println(); Serial.println();
@@ -76,7 +82,7 @@ void setup() {
     Serial.print(".");
   }
   Serial.println();
-
+  led_on(WIFI_STATUS_LED);
   Serial.println("WiFi connected");
   Serial.println("IP address: "); Serial.println(WiFi.localIP());
 
@@ -141,21 +147,21 @@ void MQTT_connect() {
 }
 
 /* LED is revrse wired */
-void led_off(){
-  digitalWrite(LED_PIN, HIGH);
+void led_off(int pin){
+  digitalWrite(pin, HIGH);
 }
 
 /* LED is reverse wired */
-void led_on(){
-  digitalWrite(LED_PIN, LOW);
+void led_on(int pin){
+  digitalWrite(pin, LOW);
 }
 
 void actuate_on(){
-  led_on();
+  led_on(LED_PIN);
 }
 
 void actuate_off(){
-  led_off();
+  led_off(LED_PIN);
 }
 
 void turn_off_stove(){
