@@ -29,6 +29,11 @@
 //Analog pin for Battery readings
 #define BATT A0
 
+// Amount of time needed on HIGH to actuate the relay
+#define RELAY_TIME 10 //milliseconds
+#define RELAY_SET_PIN 14
+#define RELAY_UNSET_PIN 12
+
 //Conversion from ADC output through voltage divider to actual voltage
 /* The divider is 250kohm/250kohm + 1Mohm. 1024bit output on ADC which is a 1V ADc.
  *  So if we had 4.2V at the battery it shoud be 4.2V * (250/1250) * 1024 = 860
@@ -81,6 +86,8 @@ void setup() {
   // Setup LED
   pinMode(LED_PIN, OUTPUT);
   pinMode(WIFI_STATUS_LED, OUTPUT);
+  pinMode(RELAY_SET_PIN, OUTPUT);
+  pinMode(RELAY_UNSET_PIN, OUTPUT);
   led_off(WIFI_STATUS_LED);
   led_off(LED_PIN);
   
@@ -127,22 +134,22 @@ void loop() {
       cmd_stove(atoi(&cmd_str[0]));
     }
   }
-
-  if (!stove_state.publish(state)) {
-    Serial.println(F("Failed"));
-  } else {
-    Serial.println(F("OK!"));
-  }
+//
+//  if (!stove_state.publish(state)) {
+//    Serial.println(F("Failed"));
+//  } else {
+//    Serial.println(F("OK!"));
+//  }
 
   /* We have a 1Mohm -> 250kohm voltage divider for this analog read since our adc is only to 1V*/
   vbatt_raw = analogRead(BATT);
   vbatt_calced = (float)vbatt_raw * VOLTAGE_CONVERSION;
-
-  if (!battery_state.publish(vbatt_calced)) {
-    Serial.println(F("Failed"));
-  } else {
-    Serial.println(F("OK!"));
-  }
+  Serial.println(vbatt_calced);
+//  if (!battery_state.publish(vbatt_calced)) {
+//    Serial.println(F("Failed"));
+//  } else {
+//    Serial.println(F("OK!"));
+//  }
   // ping the server to keep the mqtt connection alive, only needed if not publishing
   //if(! mqtt.ping()) {
   //  Serial.println("Disconnecting");
@@ -189,10 +196,16 @@ void led_on(int pin){
 
 void actuate_on(){
   led_on(LED_PIN);
+  digitalWrite(RELAY_SET_PIN, HIGH);
+  delay(RELAY_TIME);
+  digitalWrite(RELAY_SET_PIN, LOW);
 }
 
 void actuate_off(){
   led_off(LED_PIN);
+  digitalWrite(RELAY_UNSET_PIN, HIGH);
+  delay(RELAY_TIME);
+  digitalWrite(RELAY_UNSET_PIN, LOW);
 }
 
 void turn_off_stove(){
