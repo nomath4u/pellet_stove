@@ -51,7 +51,7 @@ Adafruit_MQTT_Client mqtt(&client, SERVER, SERVER_PORT, MQTT_USER, MQTT_PASS);
 
 /****************************** Feeds ***************************************/
 
-// Setup a feed called 'onoff' for subscribing to changes.
+Adafruit_MQTT_Publish stove_state = Adafruit_MQTT_Publish(&mqtt, "/stove/state");
 Adafruit_MQTT_Subscribe stove_cmd = Adafruit_MQTT_Subscribe(&mqtt, "/stove/cmd");
 
 /*************************** Sketch Code ************************************/
@@ -112,11 +112,17 @@ void loop() {
     }
   }
 
-  // ping the server to keep the mqtt connection alive
-  if(! mqtt.ping()) {
-    Serial.println("Disconnecting");
-    mqtt.disconnect();
+  if (!stove_state.publish(state)) {
+    Serial.println(F("Failed"));
+  } else {
+    Serial.println(F("OK!"));
   }
+
+  // ping the server to keep the mqtt connection alive, only needed if not publishing
+  //if(! mqtt.ping()) {
+  //  Serial.println("Disconnecting");
+  //  mqtt.disconnect();
+  //}
 }
 
 // Function to connect and reconnect as necessary to the MQTT server.
